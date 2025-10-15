@@ -74,6 +74,13 @@ def process_data(data):
 - **Organize by responsibility**: Separate files for different concerns
 - **Test the refactor**: Ensure functionality remains the same
 
+### 9.1 Minimal, Readability-First Refactors
+- Favor fewer moving parts and fewer lines over feature breadth
+- Prefer cohesive objects with clear data flow over granular helpers
+- Keep state in a single, obvious place (e.g., one messages list for chat)
+- Remove validations unless they unlock real recovery paths
+- Ship only what is essential; delete dead code and comments
+
 ### 10. Git and Commits
 - **NEVER suggest commits** unless explicitly asked
 - Only commit when user explicitly requests it
