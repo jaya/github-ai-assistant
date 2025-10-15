@@ -1,7 +1,8 @@
 import json
 import os
 
-from openai import OpenAI
+from langchain.schema import AIMessage, HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
 
 from llm.prompt_loader import PromptLoader
 
@@ -9,7 +10,9 @@ from llm.prompt_loader import PromptLoader
 class OpenAiSession:
     def __init__(self) -> None:
         self._load_system_prompts()
-        self.conversation_messages = []
+        self.messages: list[SystemMessage | HumanMessage | AIMessage] = [
+            SystemMessage(content=p) for p in self.system_prompts
+        ]
 
     def _load_system_prompts(self) -> None:
         self.system_prompt = PromptLoader.load_prompt("natural-github.txt")
@@ -26,19 +29,10 @@ class OpenAiSession:
         ]
 
     def ask(self, question: str) -> str:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-        if not self.conversation_messages:
-            messages = [{"role": "system", "content": prompt} for prompt in self.system_prompts]
-        else:
-            messages = self.conversation_messages.copy()
-
-        messages.append({"role": "user", "content": question})
-
-        resp = client.chat.completions.create(model="gpt-5", messages=messages)
-        answer = (resp.choices[0].message.content or "").strip()
-
-        messages.append({"role": "assistant", "content": answer})
-        self.conversation_messages = messages
-
+        self.messages.append(HumanMessage(content=question))
+        model_name = os.getenv("OPENAI_MODEL", "gpt-5")
+        llm = ChatOpenAI(model=model_name)
+        result = llm.invoke(self.messages)
+        answer = (result.content or "").strip()
+        self.messages.append(AIMessage(content=answer))
         return answer

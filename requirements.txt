@@ -3,6 +3,10 @@ openai>=1.0.0
 mcp>=1.0.0
 python-dotenv>=1.0.0
 
+# LangChain (experiments)
+langchain>=0.2.0
+langchain-openai>=0.1.0
+
 # Development dependencies
 ruff>=0.1.0
 pre-commit>=3.0.0
