@@ -177,3 +177,6 @@ else:
 - Only commit when user explicitly requests it
 - Don't propose commit messages or git operations
 - Focus on code changes, not version control workflow
+- **Never add "Generated with Claude Code" or similar AI signatures** to commit messages
+  - Keep commit messages clean and professional
+  - No "Co-Authored-By: Claude" or similar attribution

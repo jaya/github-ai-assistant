@@ -18,7 +18,7 @@ class CodeAssistant:
 
     async def _initialize(self) -> None:
         tools_list = await self.mcp_client.list_tools()
-        print(f"✅ {len(tools_list)} tools carregadas do MCP")
+        print(f"✅ {len(tools_list)} tools loaded from MCP")
 
         self.llm_session = LLMSession(tools_list)
 
