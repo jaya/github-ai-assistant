@@ -3,17 +3,18 @@ import asyncio
 from dotenv import load_dotenv
 
 from code_assistant import CodeAssistant
+from config.langsmith_config import setup_langsmith
 
 
 # Load environment variables from .env file
 load_dotenv()
 
+# Setup LangSmith tracing
+setup_langsmith()
+
 
 async def main() -> None:
-    """Start the GitHub Code Assistant in interactive mode"""
-    assistant = CodeAssistant()
-
-    # Start interactive conversation
+    assistant = await CodeAssistant.create()
     await assistant.start_conversation()
 
 

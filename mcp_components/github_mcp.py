@@ -14,7 +14,7 @@ class GitHubMCP:
                 "--rm",
                 "-e",
                 "GITHUB_PERSONAL_ACCESS_TOKEN",
-                "ghcr.io/github/github-mcp-server",
+                "ghcr.io/github/github-mcp-server:latest",
                 "stdio",
             ],
             env={"GITHUB_PERSONAL_ACCESS_TOKEN": os.getenv("GITHUB_TOKEN")},
