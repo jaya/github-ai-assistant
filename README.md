@@ -14,6 +14,10 @@ pip install -r requirements.txt
 export OPENAI_API_KEY="your_openai_key_here"
 export GITHUB_TOKEN="your_github_token_here"
 export GITHUB_LOGIN="your_github_username"
+
+# Optional: LangSmith for observability
+export LANGSMITH_API_KEY="your_langsmith_key_here"
+export LANGSMITH_PROJECT="eleminder-ai"
 ```
 
 3. **Run the assistant:**
@@ -98,3 +102,22 @@ Medium Priority (P1):
 - **Docker** (for MCP GitHub server)
 - **OpenAI API Key** ([Get one here](https://platform.openai.com/api-keys))
 - **GitHub Personal Access Token** ([Generate here](https://github.com/settings/tokens))
+- **LangSmith API Key** (optional, for observability - [Get one here](https://smith.langchain.com/))
+
+## Observability with LangSmith
+
+The project includes LangSmith integration for tracing and monitoring LLM calls:
+
+- **Automatic tracing** of all OpenAI API calls
+- **Conversation tracking** with full context
+- **Performance metrics** and token usage
+- **Debugging capabilities** for prompt engineering
+
+To enable LangSmith:
+1. Get your API key from [smith.langchain.com](https://smith.langchain.com/)
+2. Set the environment variables:
+   ```bash
+   export LANGSMITH_API_KEY="your_langsmith_key_here"
+   export LANGSMITH_PROJECT="eleminder-ai"
+   ```
+3. All LLM interactions will be automatically traced and visible in your LangSmith dashboard

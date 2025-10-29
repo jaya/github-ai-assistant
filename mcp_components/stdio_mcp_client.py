@@ -4,6 +4,9 @@ import json
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
+from mcp_components.mcp_call import MCPCall
+from mcp_components.mcp_response import MCPResponse
+
 
 class StdioMCPClient:
     def __init__(self, server_params: StdioServerParameters):
@@ -29,19 +32,19 @@ class StdioMCPClient:
         tools_response = await self._session.list_tools()
         return [tool.model_dump() for tool in tools_response.tools]
 
-    async def execute(
-        self, method: str, tool_name: str | None = None, arguments: dict | None = None
-    ) -> dict:
-        if method == "tools/list":
+    async def execute(self, mcp_call: MCPCall) -> MCPResponse:
+        if mcp_call.method == "tools/list":
             result = await self.list_tools()
-            return {
+            data = {
                 "content": [{"type": "text", "text": json.dumps(result, indent=2)}],
                 "isError": False,
             }
-        elif method == "tools/call":
-            return await self.execute_tool(tool_name, arguments)
+        elif mcp_call.method == "tools/call":
+            data = await self.execute_tool(mcp_call.tool_name, mcp_call.arguments)
         else:
-            raise ValueError(f"Unsupported method: {method}")
+            raise ValueError(f"Unsupported method: {mcp_call.method}")
+
+        return MCPResponse(data)
 
     async def cleanup(self) -> None:
         if self._stack is not None:
