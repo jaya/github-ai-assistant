@@ -1,6 +1,17 @@
+from __future__ import annotations
+
+import os
+import uuid
+
+from langchain.agents import create_agent
+from langchain.chat_models import init_chat_model
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import HumanMessage
+from langchain_mcp_adapters.tools import load_mcp_tools
+from langgraph.checkpoint.memory import MemorySaver
+
 from conversation_loop import ConversationLoop
-from llm.llm_answer import LLMAnswer
-from llm.llm_session import LLMSession
+from llm.prompt_loader import PromptLoader
 from mcp_components.github_mcp import GitHubMCP
 from mcp_components.stdio_mcp_client import StdioMCPClient
 
@@ -8,36 +19,53 @@ from mcp_components.stdio_mcp_client import StdioMCPClient
 class CodeAssistant:
     def __init__(self) -> None:
         self.mcp_client = StdioMCPClient(GitHubMCP.get_params())
-        self.llm_session: LLMSession | None = None
+        self.agent = None
+        self.thread_id = str(uuid.uuid4())
 
     @classmethod
-    async def create(cls) -> "CodeAssistant":
+    async def create(cls) -> CodeAssistant:
         assistant = cls()
         await assistant._initialize()
         return assistant
 
     async def _initialize(self) -> None:
-        tools_list = await self.mcp_client.list_tools()
-        print(f"✅ {len(tools_list)} tools loaded from MCP")
+        await self.mcp_client.connect()
+        tools = await load_mcp_tools(self.mcp_client.session)
+        print(f"✅ {len(tools)} tools loaded from MCP")
 
-        self.llm_session = LLMSession(tools_list)
+        llm = _build_chat_model()
+        system_prompt = _load_system_prompt()
+        memory = MemorySaver()
+
+        self.agent = create_agent(
+            model=llm,
+            tools=tools,
+            checkpointer=memory,
+            system_prompt=system_prompt,
+        )
 
     async def start_conversation(self) -> None:
         loop = ConversationLoop()
         await loop.run(self.ask, self.mcp_client.cleanup)
 
     async def ask(self, question: str) -> str:
-        answer = self.llm_session.ask(question)
-        result = await self._process(answer)
-        return result
+        config = {"configurable": {"thread_id": self.thread_id}}
+        result = await self.agent.ainvoke(
+            {"messages": [HumanMessage(content=question)]},
+            config=config,
+        )
 
-    async def _process(self, answer: LLMAnswer) -> str:
-        if answer.tool_call:
-            mcp_call = answer.mcp_call()
-            print(f"MCP request: {mcp_call}")
+        return result["messages"][-1].content
 
-            mcp_response = await self.mcp_client.execute(mcp_call)
-            next_answer = self.llm_session.ask(mcp_response.text())
-            return await self._process(next_answer)
 
-        return answer.text()
+def _build_chat_model() -> BaseChatModel:
+    model = os.getenv("LLM_MODEL", "gemini-2.0-flash-exp")
+    provider = os.getenv("LLM_PROVIDER")
+    if provider:
+        return init_chat_model(model, model_provider=provider, temperature=0)
+    return init_chat_model(model, temperature=0)
+
+
+def _load_system_prompt() -> str:
+    template = PromptLoader.load_prompt("react-github.txt")
+    return template.format(github_login=os.getenv("GITHUB_LOGIN", "unknown"))
