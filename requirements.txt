@@ -3,8 +3,9 @@ openai>=1.0.0
 mcp>=1.0.0
 python-dotenv>=1.0.0
 
-# LangChain (experiments)
+# LangChain + LangGraph
 langchain>=0.2.0
+langgraph>=0.2.0
 langchain-openai>=0.1.0
 langchain-google-genai>=1.0.0
 langchain-anthropic>=1.0.0
