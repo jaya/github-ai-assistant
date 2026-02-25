@@ -37,11 +37,14 @@ class CodeAssistant:
         system_prompt = _load_system_prompt()
         memory = MemorySaver()
 
+        for tool in tools:
+            tool.handle_tool_error = True
+
         self.agent = create_agent(
             model=llm,
             tools=tools,
-            checkpointer=memory,
             system_prompt=system_prompt,
+            checkpointer=memory,
         )
 
     async def start_conversation(self) -> None:
